@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎰</text></svg>">
+    <title>Emoji Poker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0d5c2e 0%, #1a472a 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card-emoji {
+            font-size: 3rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .btn-glow {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .btn-glow:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full">
+        <div class="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl fade-in">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="flex justify-center space-x-2 mb-4">
+                    <div class="card-emoji">♠️</div>
+                    <div class="card-emoji">♥️</div>
+                    <div class="card-emoji">♦️</div>
+                    <div class="card-emoji">♣️</div>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">🎰 Emoji Poker</h1>
+                <p class="text-gray-600">Multiplayer Texas Hold'em with friends</p>
+            </div>
+
+            <!-- Name Input -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Your Poker Name
+                </label>
+                <input 
+                    id="playerName" 
+                    type="text" 
+                    placeholder="Enter your nickname" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition"
+                    autocomplete="off"
+                >
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-4 mb-6">
+                <button 
+                    onclick="createRoom()" 
+                    class="btn-glow w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-4 rounded-lg font-bold text-lg"
+                >
+                    🎲 Create New Room
+                </button>
+                
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-4 bg-white text-gray-500">or join existing room</span>
+                    </div>
+                </div>
+
+                <div id="joinSection" class="space-y-3">
+                    <input 
+                        id="roomCode" 
+                        type="text" 
+                        placeholder="Enter 6-letter room code" 
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 uppercase text-center font-mono text-lg tracking-widest"
+                        maxlength="6"
+                        style="letter-spacing: 0.2em;"
+                    >
+                    <button 
+                        onclick="joinRoom()" 
+                        class="btn-glow w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-4 rounded-lg font-bold text-lg"
+                    >
+                        🎯 Join Room
+                    </button>
+                </div>
+            </div>
+
+            <!-- Game Info -->
+            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                <h3 class="font-bold text-gray-700 mb-2 flex items-center">
+                    <span class="mr-2">ℹ️</span> Game Info
+                </h3>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li class="flex items-center">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                        Starting chips: <span class="font-bold ml-1">1,000</span>
+                    </li>
+                    <li class="flex items-center">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                        Turn timer: <span class="font-bold ml-1">30 seconds</span>
+                    </li>
+                    <li class="flex items-center">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                        Max players: <span class="font-bold ml-1">8 per table</span>
+                    </li>
+                    <li class="flex items-center">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                        Room expires: <span class="font-bold ml-1">2 hours</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-8 text-center text-gray-500 text-sm">
+                <p>Built with ♥️ | Multiplayer Poker | Turn-based Gameplay</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const backend = "https://your-render-app.onrender.com"; // Change to your Render URL
+        
+        // Load player name from localStorage if exists
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedName = localStorage.getItem('pokerPlayerName');
+            if (savedName) {
+                document.getElementById('playerName').value = savedName;
+            }
+            document.getElementById('playerName').focus();
+        });
+
+        async function createRoom() {
+            const playerName = document.getElementById('playerName').value.trim();
+            if (!playerName) {
+                alert('Please enter your name');
+                document.getElementById('playerName').focus();
+                return;
+            }
+            
+            // Save name to localStorage
+            localStorage.setItem('pokerPlayerName', playerName);
+            
+            try {
+                const response = await fetch(`${backend}/poker/create?player_name=${encodeURIComponent(playerName)}`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to create room');
+                }
+                
+                const data = await response.json();
+                
+                // Store player info
+                localStorage.setItem('pokerRoomCode', data.room_code);
+                localStorage.setItem('pokerPlayerId', data.player_id);
+                localStorage.setItem('pokerIsHost', data.is_host.toString());
+                
+                // Redirect to waiting room
+                window.location.href = 'waiting_room.html';
+                
+            } catch (error) {
+                alert('Error creating room. Please try again.');
+                console.error(error);
+            }
+        }
+
+        async function joinRoom() {
+            const playerName = document.getElementById('playerName').value.trim();
+            const roomCode = document.getElementById('roomCode').value.toUpperCase().trim();
+            
+            if (!playerName) {
+                alert('Please enter your name');
+                document.getElementById('playerName').focus();
+                return;
+            }
+            
+            if (!roomCode || roomCode.length !== 6) {
+                alert('Please enter a valid 6-letter room code');
+                document.getElementById('roomCode').focus();
+                return;
+            }
+            
+            // Save name to localStorage
+            localStorage.setItem('pokerPlayerName', playerName);
+            
+            try {
+                // Check if room exists first
+                const checkResponse = await fetch(`${backend}/poker/room/${roomCode}/exists`);
+                const checkData = await checkResponse.json();
+                
+                if (!checkData.exists) {
+                    alert('Room not found. Please check the code.');
+                    return;
+                }
+                
+                if (checkData.game_started) {
+                    alert('Game has already started in this room.');
+                    return;
+                }
+                
+                if (checkData.player_count >= checkData.max_players) {
+                    alert('Room is full (max 8 players)');
+                    return;
+                }
+                
+                // Join the room
+                const joinResponse = await fetch(`${backend}/poker/room/${roomCode}/join?player_name=${encodeURIComponent(playerName)}`, {
+                    method: 'POST'
+                });
+                
+                if (!joinResponse.ok) {
+                    const error = await joinResponse.json();
+                    alert(error.detail || 'Failed to join room');
+                    return;
+                }
+                
+                const data = await joinResponse.json();
+                
+                // Store player info
+                localStorage.setItem('pokerRoomCode', data.room_code);
+                localStorage.setItem('pokerPlayerId', data.player_id);
+                localStorage.setItem('pokerIsHost', data.is_host.toString());
+                
+                // Redirect to waiting room or game
+                if (checkData.game_started) {
+                    window.location.href = 'poker.html';
+                } else {
+                    window.location.href = 'waiting_room.html';
+                }
+                
+            } catch (error) {
+                alert('Error joining room. Please try again.');
+                console.error(error);
+            }
+        }
+
+        // Enter key support
+        document.getElementById('playerName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const roomCode = document.getElementById('roomCode').value;
+                if (roomCode) {
+                    joinRoom();
+                } else {
+                    createRoom();
+                }
+            }
+        });
+
+        document.getElementById('roomCode').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                joinRoom();
+            }
+        });
+    </script>
+</body>
+</html>
